@@ -13,7 +13,39 @@ hosted on Replicate. That's the practical route for personal use: these
 models need large paired datasets and heavy GPU training that isn't worth
 reproducing for individual use.
 
-## Setup
+## Setup — no coding required (hosted on Render)
+
+This is the easiest way to use the app: click through two website sign-ups,
+and you get a link you can open on your phone or computer any time.
+
+1. **Get a Replicate API token** (this pays for each try-on, a few cents each):
+   - Go to https://replicate.com and sign up (you can use your Google/GitHub account).
+   - Go to https://replicate.com/account/api-tokens and click "Create token".
+   - Copy the token somewhere — you'll paste it in step 3.
+2. **Deploy the app on Render** (this hosts the app and gives you a web link):
+   - Go to https://render.com and sign up using your GitHub account.
+   - Click **New +** → **Web Service**.
+   - Choose **Build and deploy from a Git repository**, then connect/select
+     the `Virtual-Closet` repository and pick the
+     `claude/virtual-try-on-clothes-ljc5lf` branch.
+   - Render will auto-detect the settings from `render.yaml` in this repo
+     (build command, start command, free plan). Just confirm.
+3. **Add your Replicate token:**
+   - When prompted for the `REPLICATE_API_TOKEN` environment variable (or
+     under the service's "Environment" tab after creation), paste the token
+     from step 1.
+4. Click **Deploy** (or **Create Web Service**). Wait a few minutes for the
+   build to finish — Render gives you a URL like
+   `https://virtual-closet-xxxx.onrender.com`.
+5. Open that URL on your phone or laptop, upload a photo of yourself and a
+   photo of a garment, and click "Try it on".
+
+Notes on the free plan: the service "sleeps" after 15 minutes of no use, so
+the first request after a while takes ~30-60 seconds to wake up — that's
+normal. Uploaded photos and results also get cleared whenever the service
+restarts, so treat it as scratch space, not permanent storage.
+
+## Setup — running it yourself in a terminal (optional, for developers)
 
 1. Create a [Replicate](https://replicate.com) account and generate an API
    token from https://replicate.com/account/api-tokens.
