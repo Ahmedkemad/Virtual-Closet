@@ -421,9 +421,46 @@ button#submit-btn.loading .btn-spinner {
   font-size: 0.82rem;
 }
 
+.empty-state.error {
+  color: #a3402f;
+}
+
 .banner {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
   background: var(--paper-card);
+}
+
+a {
+  color: var(--ink);
+}
+
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.user-bar form {
+  margin: 0;
+}
+
+.auth-main {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-form h2 {
+  margin-top: 0;
+}
+
+.auth-switch {
+  text-align: center;
 }

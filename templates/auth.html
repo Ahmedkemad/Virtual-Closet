@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Virtual Closet — {{ 'Sign up' if mode == 'signup' else 'Log in' }}</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <meta name="theme-color" content="#f7f5f0" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Virtual Closet" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-180.png" />
+  <link rel="icon" href="/static/icons/icon-192.png" />
+</head>
+<body>
+  <header>
+    <span class="eyebrow">Personal AI Styling</span>
+    <h1>Virtual Closet</h1>
+  </header>
+
+  <main class="auth-main">
+    <form method="post" class="card auth-form">
+      <h2 class="library-title">{{ 'Create your account' if mode == 'signup' else 'Log in' }}</h2>
+
+      {% if error %}
+      <p class="empty-state error">{{ error }}</p>
+      {% endif %}
+
+      {% if mode == 'signup' %}
+      <div class="field">
+        <label for="invite_code">Invite code</label>
+        <input type="text" id="invite_code" name="invite_code" required autocomplete="off" />
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required autocomplete="email" />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          minlength="6"
+          autocomplete="{{ 'new-password' if mode == 'signup' else 'current-password' }}"
+        />
+      </div>
+
+      <button type="submit" id="submit-btn">{{ 'Sign up' if mode == 'signup' else 'Log in' }}</button>
+    </form>
+
+    <p class="empty-state small auth-switch">
+      {% if mode == 'signup' %}
+      Already have an account? <a href="{{ url_for('login') }}">Log in</a>
+      {% else %}
+      Need an account? <a href="{{ url_for('signup') }}">Sign up</a>
+      {% endif %}
+    </p>
+  </main>
+</body>
+</html>

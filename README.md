@@ -5,10 +5,11 @@ tops and bottoms once, then mix and match a full outfit to see what
 it looks like on you without re-uploading each time — your library is saved
 permanently until you delete something yourself. The **Try It On** tab is
 for picking a photo and an outfit; the **My Closet** tab is for adding and
-organizing everything you've saved. Uses a hosted AI try-on model via
-[Replicate](https://replicate.com), stores your photos in a free
-[Supabase](https://supabase.com) project, and can be installed on your
-iPhone as a home-screen app.
+organizing everything you've saved. Supports multiple people sharing one
+deployment, each with their own private, invite-gated account and closet.
+Uses a hosted AI try-on model via [Replicate](https://replicate.com), stores
+your photos in a free [Supabase](https://supabase.com) project, and can be
+installed on your iPhone as a home-screen app.
 
 ## How it works
 
@@ -71,19 +72,35 @@ This pays for each try-on, a few cents each.
     created_at timestamptz not null default now()
   );
   ```
-- In the left sidebar, click the gear icon (**Project Settings**) → **API**.
-  Copy the **Project URL**, and copy the **service_role** secret key (not
-  the "anon" key — the service_role one). You'll paste both in step 4.
+- Set up accounts so multiple people can share this app, each with their own
+  private closet:
+  - In **SQL Editor** → **New query**, paste and run:
+    ```sql
+    alter table people add column user_id uuid not null;
+    alter table garments add column user_id uuid not null;
+    alter table history add column user_id uuid not null;
 
-> **Already have a Supabase project from before?** Garments now have a
-> category (top/bottom). Open **SQL Editor** → **New query**, paste
-> and run:
-> ```sql
-> alter table garments add column category text not null default 'top';
-> ```
-> Anything you'd already saved is treated as a "top" — move it to the right
-> category by deleting and re-adding it under the correct section in My
-> Closet.
+    alter table people enable row level security;
+    alter table garments enable row level security;
+    alter table history enable row level security;
+
+    create policy "individual access" on people
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+    create policy "individual access" on garments
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+    create policy "individual access" on history
+      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+    ```
+  - In the left sidebar, click **Authentication** → **Providers** → **Email**,
+    and turn **off** "Confirm email" — this lets people log in right after
+    signing up without needing a working confirmation email.
+- In the left sidebar, click the gear icon (**Project Settings**) → **API**.
+  Copy the **Project URL**, the **service_role** secret key, and the
+  **anon** (or "publishable") key — you'll paste all three in step 4.
+
+> **Already have a Supabase project from before today?** See "Upgrading an
+> existing deployment" near the bottom of this file — you have existing data
+> that needs a slightly different migration path than a brand-new setup.
 
 ### 3. Deploy the app on Render
 
@@ -98,10 +115,17 @@ This pays for each try-on, a few cents each.
 ### 4. Add your environment variables
 
 - When prompted for environment variables (or under the service's
-  **Environment** tab after creation), add all three:
+  **Environment** tab after creation), add all six:
   - `REPLICATE_API_TOKEN` = the token from step 1
   - `SUPABASE_URL` = the Project URL from step 2
   - `SUPABASE_SERVICE_KEY` = the service_role key from step 2
+  - `SUPABASE_ANON_KEY` = the anon/publishable key from step 2
+  - `FLASK_SECRET_KEY` = any long random string (this signs login sessions —
+    pick something like a 40+ character random string; it just needs to be
+    secret and stay the same over time)
+  - `INVITE_CODE` = any word or phrase you make up — you'll share this with
+    whoever you want to be able to sign up (it's the only thing standing
+    between a random visitor and creating an account on your Replicate bill)
 - Click **Deploy** (or **Create Web Service**). Wait a few minutes for the
   build to finish — Render gives you a URL like
   `https://virtual-closet-xxxx.onrender.com`.
@@ -110,6 +134,11 @@ This pays for each try-on, a few cents each.
 
 Open that URL on your phone or laptop.
 
+- The first time, click **Sign up**, enter the invite code from step 4,
+  and pick your own email + password. Everyone who wants their own private
+  closet does this once, using the same invite code. After that, the app
+  stays logged in on that device for months — no need to log in again each
+  time you open it.
 - In **My Closet**, click **+ Add** to save a photo of yourself, and **+
   Add** under Tops/Bottoms for each clothing item — they're saved
   permanently so you just tap to pick them next time. Hover (or tap, on
@@ -117,6 +146,9 @@ Open that URL on your phone or laptop.
 - In **Try It On**, pick your photo and a top and/or bottom (at least one
   required), then click **Try it on** to see the outfit composited onto
   your photo.
+- Everyone's closet is completely private — nobody can see or touch anyone
+  else's saved photos, garments, or try-on history, even though you're all
+  sharing the same app and the same Replicate/Supabase bill.
 
 Note on the Render free plan: the service "sleeps" after 15 minutes of no
 use, so the first request after a while takes ~30-60 seconds to wake up —
@@ -143,16 +175,74 @@ The app works as an installable home-screen app (no App Store needed):
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
-3. Copy `.env.example` to `.env` and fill in all three values:
+3. Copy `.env.example` to `.env` and fill in all six values:
    ```bash
    cp .env.example .env
-   # edit .env and set REPLICATE_API_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY
+   # edit .env and set REPLICATE_API_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_KEY,
+   # SUPABASE_ANON_KEY, FLASK_SECRET_KEY, and INVITE_CODE
    ```
 4. Run the app:
    ```bash
    python app.py
    ```
 5. Open http://localhost:5000.
+
+## Upgrading an existing deployment to multi-user accounts
+
+If you already had this app running with photos saved before accounts
+existed, those rows have no owner yet. Here's the exact sequence to add
+accounts without losing anything:
+
+1. In Supabase **SQL Editor** → **New query**, run this (note: no
+   `not null` yet, since your tables already have rows without a user_id):
+   ```sql
+   alter table people add column user_id uuid;
+   alter table garments add column user_id uuid;
+   alter table history add column user_id uuid;
+
+   alter table people enable row level security;
+   alter table garments enable row level security;
+   alter table history enable row level security;
+
+   create policy "individual access" on people
+     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   create policy "individual access" on garments
+     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   create policy "individual access" on history
+     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+   ```
+2. In **Authentication** → **Providers** → **Email**, turn **off**
+   "Confirm email".
+3. In **Project Settings** → **API**, copy the **anon** (or "publishable")
+   key.
+4. In Render → your service → **Environment**, add:
+   - `SUPABASE_ANON_KEY` = the key from step 3
+   - `FLASK_SECRET_KEY` = any long random string
+   - `INVITE_CODE` = any word you choose
+   Save — Render redeploys with the new code and env vars.
+5. Once it's live, go to your app URL, click **Sign up**, and create your
+   own account with the invite code from step 4. This is what makes your
+   existing photos yours again.
+6. In Supabase, go to **Authentication** → **Users**, find the account you
+   just created, and copy its **UID**.
+7. Back in **SQL Editor**, run (with your real UID pasted in):
+   ```sql
+   update people set user_id = 'paste-your-uid-here' where user_id is null;
+   update garments set user_id = 'paste-your-uid-here' where user_id is null;
+   update history set user_id = 'paste-your-uid-here' where user_id is null;
+   ```
+8. Refresh the app — your existing photos and history should be back,
+   now owned by your account.
+9. Optional cleanup, once you're sure everything looks right:
+   ```sql
+   alter table people alter column user_id set not null;
+   alter table garments alter column user_id set not null;
+   alter table history alter column user_id set not null;
+   ```
+
+Anyone else who wants their own closet just goes to `/signup` on the same
+app URL with the same invite code — they'll start with a completely empty,
+private closet of their own.
 
 ## Notes
 

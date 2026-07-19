@@ -21,11 +21,14 @@ def _headers(content_type: str | None = None) -> dict:
     return headers
 
 
-def db_select(table: str) -> list:
+def db_select(table: str, filters: dict | None = None) -> list:
+    params = {"select": "*", "order": "created_at.desc"}
+    for key, value in (filters or {}).items():
+        params[key] = f"eq.{value}"
     resp = requests.get(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers=_headers(),
-        params={"select": "*", "order": "created_at.desc"},
+        params=params,
         timeout=15,
     )
     resp.raise_for_status()
@@ -43,11 +46,14 @@ def db_insert(table: str, row: dict) -> dict:
     return resp.json()[0]
 
 
-def db_delete(table: str, item_id: str) -> dict | None:
+def db_delete(table: str, item_id: str, filters: dict | None = None) -> dict | None:
+    params = {"id": f"eq.{item_id}"}
+    for key, value in (filters or {}).items():
+        params[key] = f"eq.{value}"
     resp = requests.delete(
         f"{SUPABASE_URL}/rest/v1/{table}",
         headers={**_headers("application/json"), "Prefer": "return=representation"},
-        params={"id": f"eq.{item_id}"},
+        params=params,
         timeout=15,
     )
     resp.raise_for_status()

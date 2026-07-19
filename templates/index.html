@@ -23,6 +23,13 @@
   </header>
 
   <main>
+    <div class="user-bar">
+      <span>{{ user_email }}</span>
+      <form method="post" action="{{ url_for('logout') }}">
+        <button type="submit" class="link-btn">Log out</button>
+      </form>
+    </div>
+
     {% if storage_message %}
     <p class="empty-state banner">{{ storage_message }}</p>
     {% endif %}
