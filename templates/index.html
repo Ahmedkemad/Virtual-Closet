@@ -2,36 +2,62 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Virtual Closet — Try-On</title>
   <link rel="stylesheet" href="/static/css/style.css" />
+
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <meta name="theme-color" content="#f7f5f0" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Virtual Closet" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-180.png" />
+  <link rel="icon" href="/static/icons/icon-192.png" />
 </head>
 <body>
   <header>
     <span class="eyebrow">Personal AI Styling</span>
     <h1>Virtual Closet</h1>
-    <p>Upload a photo of yourself and a garment, and see how it looks on you.</p>
+    <p>Pick a photo of yourself and a garment, and see how it looks on you.</p>
   </header>
 
   <main>
     <form id="try-on-form" class="card">
-      <div class="dropzone-grid">
-        <div class="dropzone" id="person-dropzone" data-target="person_image">
-          <input type="file" id="person_image" name="person_image" accept="image/*" required />
-          <div class="dropzone-inner" id="person-preview">
-            <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M12 4v13m0-13 4.5 4.5M12 4 7.5 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            <span class="dz-label">Your photo</span>
-            <span class="dz-hint">Click or drag an image</span>
-          </div>
-        </div>
+      <input type="hidden" id="person_id" name="person_id" value="" />
+      <input type="hidden" id="garment_id" name="garment_id" value="" />
 
-        <div class="dropzone" id="garment-dropzone" data-target="garment_image">
-          <input type="file" id="garment_image" name="garment_image" accept="image/*" required />
-          <div class="dropzone-inner" id="garment-preview">
-            <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M8 4 5 6.5V8a2 2 0 0 0 2 2v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V10a2 2 0 0 0 2-2V6.5L16 4l-2 1.5h-4L8 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-            <span class="dz-label">Garment photo</span>
-            <span class="dz-hint">Click or drag an image</span>
+      <div class="library">
+        <h2 class="library-title">Your photo</h2>
+        <div class="library-grid" id="people-grid" data-endpoint="/people" data-hidden-field="person_id">
+          <label class="library-add">
+            <input type="file" accept="image/*" class="library-add-input" />
+            <span class="add-icon">+</span>
+            <span class="add-label">Add</span>
+          </label>
+          {% for p in people %}
+          <div class="library-item" data-id="{{ p.id }}" data-label="{{ p.label }}">
+            <img src="/static/people/{{ p.filename }}" alt="{{ p.label or 'your photo' }}" />
+            <button type="button" class="delete-btn" title="Delete this photo">&times;</button>
           </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="library">
+        <h2 class="library-title">Garment</h2>
+        <div class="library-grid" id="garments-grid" data-endpoint="/garments" data-hidden-field="garment_id">
+          <label class="library-add">
+            <input type="file" accept="image/*" class="library-add-input" />
+            <span class="add-icon">+</span>
+            <span class="add-label">Add</span>
+          </label>
+          {% for g in garments %}
+          <div class="library-item" data-id="{{ g.id }}" data-label="{{ g.label }}">
+            <img src="/static/garments/{{ g.filename }}" alt="{{ g.label or 'garment' }}" />
+            <button type="button" class="delete-btn" title="Delete this garment">&times;</button>
+          </div>
+          {% endfor %}
         </div>
       </div>
 
@@ -40,7 +66,7 @@
         <input type="text" id="garment_desc" name="garment_desc" placeholder="e.g. a red cotton hoodie" />
       </div>
 
-      <button type="submit" id="submit-btn">
+      <button type="submit" id="submit-btn" disabled>
         <span class="btn-label">Try it on</span>
         <span class="btn-spinner" aria-hidden="true"></span>
       </button>

@@ -1,9 +1,10 @@
 # Virtual Closet
 
-A small personal virtual try-on app. Upload a photo of yourself and a photo of a
-garment, and see what it looks like on you. Runs locally, uses a hosted
-AI try-on model via [Replicate](https://replicate.com), and keeps a local
-history of your try-ons.
+A small personal virtual try-on app. Save a photo of yourself and photos of
+garments once, then mix and match them to see what looks like on you without
+re-uploading each time. Uses a hosted AI try-on model via
+[Replicate](https://replicate.com), and can be installed on your iPhone as a
+home-screen app.
 
 ## How it works
 
@@ -37,13 +38,30 @@ and you get a link you can open on your phone or computer any time.
 4. Click **Deploy** (or **Create Web Service**). Wait a few minutes for the
    build to finish — Render gives you a URL like
    `https://virtual-closet-xxxx.onrender.com`.
-5. Open that URL on your phone or laptop, upload a photo of yourself and a
-   photo of a garment, and click "Try it on".
+5. Open that URL on your phone or laptop. Click **+ Add** under "Your photo"
+   to save a photo of yourself once, and **+ Add** under "Garment" for each
+   clothing item — they're saved so you can just tap to pick them next time
+   instead of re-uploading. Hover (or tap, on mobile) a saved photo to see a
+   **×** button to delete it.
 
 Notes on the free plan: the service "sleeps" after 15 minutes of no use, so
 the first request after a while takes ~30-60 seconds to wake up — that's
-normal. Uploaded photos and results also get cleared whenever the service
-restarts, so treat it as scratch space, not permanent storage.
+normal. **Important:** Render's free tier does not have a persistent disk,
+so your saved photos and history survive restarts/sleep but are wiped
+whenever a new code update gets deployed. If you want your library to
+survive redeploys permanently, Render offers persistent disks as a paid
+add-on (a couple dollars a month) — ask if you want that wired up.
+
+## Install it on your iPhone
+
+The app works as an installable home-screen app (no App Store needed):
+
+1. Open your Render app URL in **Safari** on your iPhone (must be Safari,
+   not Chrome).
+2. Tap the **Share** icon (square with an arrow) in the toolbar.
+3. Scroll down and tap **Add to Home Screen**, then tap **Add**.
+4. A "Virtual Closet" icon appears on your home screen — opening it launches
+   full-screen, without Safari's address bar, like a normal app.
 
 ## Setup — running it yourself in a terminal (optional, for developers)
 
@@ -69,9 +87,10 @@ restarts, so treat it as scratch space, not permanent storage.
 
 ## Notes
 
-- Uploaded photos and results are saved locally under `static/uploads/` and
-  `static/outputs/` (git-ignored) — nothing is stored except on your machine
-  and on Replicate's servers during processing.
+- Saved photos and results live under `static/people/`, `static/garments/`,
+  and `static/outputs/` (all git-ignored) — nothing is stored except on
+  wherever you're running the app and on Replicate's servers during
+  processing.
 - Each try-on costs a small fraction of a dollar in Replicate compute
   (check current pricing on the model's Replicate page).
 - If the model's input schema changes, adjust the `input=` dict in
