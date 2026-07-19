@@ -124,6 +124,17 @@ def delete_garment(item_id):
     return "", 204
 
 
+@app.route("/history/<item_id>", methods=["DELETE"])
+def delete_history(item_id):
+    try:
+        row = storage.db_delete("history", item_id)
+        if row:
+            storage.storage_delete(f"outputs/{row['filename']}")
+    except requests.RequestException as exc:
+        return jsonify({"error": f"Could not delete: {exc}"}), 502
+    return "", 204
+
+
 @app.route("/try-on", methods=["POST"])
 def try_on():
     if not os.environ.get("REPLICATE_API_TOKEN"):

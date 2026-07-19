@@ -81,11 +81,12 @@
 
       <section id="history">
         <h2>Past try-ons</h2>
-        <div class="history-grid">
+        <div class="history-grid" id="history-grid" data-endpoint="/history">
           {% for entry in history %}
-          <div class="history-item">
+          <div class="history-item" data-id="{{ entry.id }}">
             <img src="{{ entry.image_url }}" alt="{{ entry.garment_desc }}" loading="lazy" />
             <p>{{ entry.garment_desc }}</p>
+            <button type="button" class="delete-btn" title="Delete this try-on">&times;</button>
           </div>
           {% else %}
           <p class="empty-state">No try-ons yet — your results will show up here.</p>

@@ -181,6 +181,32 @@ function setupManageGrid(gridId) {
 ["manage-people", "manage-top", "manage-bottom"].forEach(setupManageGrid);
 updateSubmitState();
 
+function setupHistoryGrid() {
+  const grid = document.getElementById("history-grid");
+  if (!grid) return;
+  const endpoint = grid.dataset.endpoint;
+
+  grid.addEventListener("click", (event) => {
+    const deleteBtn = event.target.closest(".delete-btn");
+    if (!deleteBtn) return;
+    const item = event.target.closest(".history-item");
+    if (!confirm("Delete this try-on?")) return;
+
+    fetch(`${endpoint}/${item.dataset.id}`, { method: "DELETE" }).then((resp) => {
+      if (!resp.ok) return;
+      item.remove();
+      if (!grid.querySelector(".history-item")) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "No try-ons yet — your results will show up here.";
+        grid.appendChild(empty);
+      }
+    });
+  });
+}
+
+setupHistoryGrid();
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 

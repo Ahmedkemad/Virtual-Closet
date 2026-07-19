@@ -216,7 +216,8 @@ main {
   display: block;
 }
 
-.library-item .delete-btn {
+.library-item .delete-btn,
+.history-item .delete-btn {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -237,11 +238,14 @@ main {
 }
 
 .library-item:hover .delete-btn,
-.library-item .delete-btn:focus {
+.library-item .delete-btn:focus,
+.history-item:hover .delete-btn,
+.history-item .delete-btn:focus {
   opacity: 1;
 }
 
-.library-item .delete-btn:hover {
+.library-item .delete-btn:hover,
+.history-item .delete-btn:hover {
   background: #a3402f;
 }
 
@@ -374,6 +378,7 @@ button#submit-btn.loading .btn-spinner {
 }
 
 .history-item {
+  position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--paper-card);
