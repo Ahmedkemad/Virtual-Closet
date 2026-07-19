@@ -1,0 +1,61 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+.field {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#status {
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+#result img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.hidden {
+  display: none;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.history-item img {
+  width: 100%;
+  border-radius: 8px;
+}
+
+.history-item p {
+  font-size: 0.85rem;
+  margin: 0.25rem 0 0;
+}

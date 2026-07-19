@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virtual Closet — Try-On</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Virtual Closet</h1>
+    <p>Upload a photo of yourself and a garment to see how it looks on you.</p>
+  </header>
+
+  <main>
+    <form id="try-on-form">
+      <div class="field">
+        <label for="person_image">Your photo</label>
+        <input type="file" id="person_image" name="person_image" accept="image/*" required />
+      </div>
+
+      <div class="field">
+        <label for="garment_image">Garment photo</label>
+        <input type="file" id="garment_image" name="garment_image" accept="image/*" required />
+      </div>
+
+      <div class="field">
+        <label for="garment_desc">Garment description</label>
+        <input type="text" id="garment_desc" name="garment_desc" placeholder="e.g. a red cotton hoodie" />
+      </div>
+
+      <button type="submit" id="submit-btn">Try it on</button>
+    </form>
+
+    <div id="status"></div>
+
+    <section id="result" class="hidden">
+      <h2>Result</h2>
+      <img id="result-img" alt="Try-on result" />
+    </section>
+
+    <section id="history">
+      <h2>Past try-ons</h2>
+      <div class="history-grid">
+        {% for entry in history %}
+        <div class="history-item">
+          <img src="/static/{{ entry.result_image }}" alt="{{ entry.garment_desc }}" />
+          <p>{{ entry.garment_desc }}</p>
+        </div>
+        {% else %}
+        <p>No try-ons yet.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
