@@ -7,21 +7,34 @@
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
+  <div class="backdrop"></div>
+
   <header>
+    <span class="eyebrow">Personal AI Styling</span>
     <h1>Virtual Closet</h1>
-    <p>Upload a photo of yourself and a garment to see how it looks on you.</p>
+    <p>Upload a photo of yourself and a garment, and see how it looks on you.</p>
   </header>
 
   <main>
-    <form id="try-on-form">
-      <div class="field">
-        <label for="person_image">Your photo</label>
-        <input type="file" id="person_image" name="person_image" accept="image/*" required />
-      </div>
+    <form id="try-on-form" class="card">
+      <div class="dropzone-grid">
+        <div class="dropzone" id="person-dropzone" data-target="person_image">
+          <input type="file" id="person_image" name="person_image" accept="image/*" required />
+          <div class="dropzone-inner" id="person-preview">
+            <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M12 4v13m0-13 4.5 4.5M12 4 7.5 8.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span class="dz-label">Your photo</span>
+            <span class="dz-hint">Click or drag an image</span>
+          </div>
+        </div>
 
-      <div class="field">
-        <label for="garment_image">Garment photo</label>
-        <input type="file" id="garment_image" name="garment_image" accept="image/*" required />
+        <div class="dropzone" id="garment-dropzone" data-target="garment_image">
+          <input type="file" id="garment_image" name="garment_image" accept="image/*" required />
+          <div class="dropzone-inner" id="garment-preview">
+            <svg class="dz-icon" viewBox="0 0 24 24" fill="none"><path d="M8 4 5 6.5V8a2 2 0 0 0 2 2v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V10a2 2 0 0 0 2-2V6.5L16 4l-2 1.5h-4L8 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            <span class="dz-label">Garment photo</span>
+            <span class="dz-hint">Click or drag an image</span>
+          </div>
+        </div>
       </div>
 
       <div class="field">
@@ -29,12 +42,15 @@
         <input type="text" id="garment_desc" name="garment_desc" placeholder="e.g. a red cotton hoodie" />
       </div>
 
-      <button type="submit" id="submit-btn">Try it on</button>
+      <button type="submit" id="submit-btn">
+        <span class="btn-label">Try it on</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+
+      <p id="status" role="status"></p>
     </form>
 
-    <div id="status"></div>
-
-    <section id="result" class="hidden">
+    <section id="result" class="card hidden">
       <h2>Result</h2>
       <img id="result-img" alt="Try-on result" />
     </section>
@@ -44,11 +60,11 @@
       <div class="history-grid">
         {% for entry in history %}
         <div class="history-item">
-          <img src="/static/{{ entry.result_image }}" alt="{{ entry.garment_desc }}" />
+          <img src="/static/{{ entry.result_image }}" alt="{{ entry.garment_desc }}" loading="lazy" />
           <p>{{ entry.garment_desc }}</p>
         </div>
         {% else %}
-        <p>No try-ons yet.</p>
+        <p class="empty-state">No try-ons yet — your results will show up here.</p>
         {% endfor %}
       </div>
     </section>
