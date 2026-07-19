@@ -77,7 +77,8 @@ restarts, so treat it as scratch space, not permanent storage.
 - If the model's input schema changes, adjust the `input=` dict in
   `app.py`'s `/try-on` route to match the fields shown on the model's
   Replicate page. You can swap models entirely via the `REPLICATE_MODEL`
-  env var.
+  env var — for community (non-official) models, include the version hash
+  after a colon, e.g. `owner/model:abc123...`, or calls will 404.
 - For full privacy with no per-image cost, you can self-host the same class
   of model (e.g. IDM-VTON or OOTDiffusion) on your own GPU — that requires
   more setup and a decent GPU (10GB+ VRAM) and isn't wired up here.

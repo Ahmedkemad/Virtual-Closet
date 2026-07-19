@@ -17,7 +17,10 @@ UPLOAD_DIR = BASE_DIR / "static" / "uploads"
 OUTPUT_DIR = BASE_DIR / "static" / "outputs"
 HISTORY_FILE = BASE_DIR / "closet_history.json"
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-REPLICATE_MODEL = os.environ.get("REPLICATE_MODEL", "cuuupid/idm-vton")
+REPLICATE_MODEL = os.environ.get(
+    "REPLICATE_MODEL",
+    "cuuupid/idm-vton:139cb1163486954531b765d4ac3bb6d3e02fe121151665adfc3b47e9ba3ebf67",
+)
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
