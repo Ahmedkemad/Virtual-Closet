@@ -1,9 +1,11 @@
 # Virtual Closet
 
 A small personal virtual try-on app. Save a photo of yourself and photos of
-garments once, then mix and match them to see what looks like on you without
-re-uploading each time — your library is saved permanently until you delete
-something yourself. Uses a hosted AI try-on model via
+tops, bottoms, and shoes once, then mix and match a full outfit to see what
+it looks like on you without re-uploading each time — your library is saved
+permanently until you delete something yourself. The **Try It On** tab is
+for picking a photo and an outfit; the **My Closet** tab is for adding and
+organizing everything you've saved. Uses a hosted AI try-on model via
 [Replicate](https://replicate.com), stores your photos in a free
 [Supabase](https://supabase.com) project, and can be installed on your
 iPhone as a home-screen app.
@@ -58,6 +60,7 @@ This pays for each try-on, a few cents each.
     id uuid primary key default gen_random_uuid(),
     filename text not null,
     label text default '',
+    category text not null default 'top',
     created_at timestamptz not null default now()
   );
 
@@ -71,6 +74,16 @@ This pays for each try-on, a few cents each.
 - In the left sidebar, click the gear icon (**Project Settings**) → **API**.
   Copy the **Project URL**, and copy the **service_role** secret key (not
   the "anon" key — the service_role one). You'll paste both in step 4.
+
+> **Already have a Supabase project from before?** Garments now have a
+> category (top/bottom/shoes). Open **SQL Editor** → **New query**, paste
+> and run:
+> ```sql
+> alter table garments add column category text not null default 'top';
+> ```
+> Anything you'd already saved is treated as a "top" — move it to the right
+> category by deleting and re-adding it under the correct section in My
+> Closet.
 
 ### 3. Deploy the app on Render
 
@@ -95,11 +108,15 @@ This pays for each try-on, a few cents each.
 
 ### 5. Use it
 
-Open that URL on your phone or laptop. Click **+ Add** under "Your photo"
-to save a photo of yourself once, and **+ Add** under "Garment" for each
-clothing item — they're saved permanently so you just tap to pick them next
-time. Hover (or tap, on mobile) a saved photo to see a **×** button to
-delete it for good.
+Open that URL on your phone or laptop.
+
+- In **My Closet**, click **+ Add** to save a photo of yourself, and **+
+  Add** under Tops/Bottoms/Shoes for each clothing item — they're saved
+  permanently so you just tap to pick them next time. Hover (or tap, on
+  mobile) a saved photo to see a **×** button to delete it for good.
+- In **Try It On**, pick your photo and any combination of a top, bottom,
+  and/or shoes (all optional except you need at least one), then click
+  **Try it on** to see the full outfit composited onto your photo.
 
 Note on the Render free plan: the service "sleeps" after 15 minutes of no
 use, so the first request after a while takes ~30-60 seconds to wake up —
@@ -139,6 +156,14 @@ The app works as an installable home-screen app (no App Store needed):
 
 ## Notes
 
+- The try-on model (idm-vton) only handles one garment at a time. To
+  composite a full outfit, the app calls it once per selected item, feeding
+  each result back in as the base photo for the next item (top, then
+  bottom, then shoes). This generally works well for 2-3 items, but quality
+  can degrade slightly with each extra pass (minor drift in pose/background)
+  — if a multi-item result looks off, try fewer items at once.
+- Each try-on with N items costs N times the usual Replicate charge, since
+  it's N sequential model calls.
 - Photos and try-on history live in your Supabase project (Storage bucket
   `closet` + the `people`/`garments`/`history` tables) — nothing is stored
   on Render's disk, so it all survives redeploys, sleeps, and restarts. It's

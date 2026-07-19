@@ -19,7 +19,7 @@
   <header>
     <span class="eyebrow">Personal AI Styling</span>
     <h1>Virtual Closet</h1>
-    <p>Pick a photo of yourself and a garment, and see how it looks on you.</p>
+    <p>Pick a photo of yourself and an outfit, and see how it looks on you.</p>
   </header>
 
   <main>
@@ -27,20 +27,85 @@
     <p class="empty-state banner">{{ storage_message }}</p>
     {% endif %}
 
-    <form id="try-on-form" class="card">
-      <input type="hidden" id="person_id" name="person_id" value="" />
-      <input type="hidden" id="garment_id" name="garment_id" value="" />
+    <nav class="tabs">
+      <button type="button" class="tab-btn active" data-tab="try-on">Try It On</button>
+      <button type="button" class="tab-btn" data-tab="closet">My Closet</button>
+    </nav>
 
-      <div class="library">
-        <h2 class="library-title">Your photo</h2>
-        <div class="library-grid" id="people-grid" data-endpoint="/people" data-hidden-field="person_id">
+    <section id="tab-try-on" class="tab-panel">
+      <form id="try-on-form" class="card">
+        <input type="hidden" id="person_id" name="person_id" value="" />
+        <input type="hidden" id="top_id" name="top_id" value="" />
+        <input type="hidden" id="bottom_id" name="bottom_id" value="" />
+        <input type="hidden" id="shoes_id" name="shoes_id" value="" />
+
+        <div class="library">
+          <h2 class="library-title">Your photo</h2>
+          <div class="library-grid select-grid" id="select-people" data-hidden-field="person_id">
+            {% for p in people %}
+            <div class="library-item" data-id="{{ p.id }}">
+              <img src="{{ p.image_url }}" alt="{{ p.label or 'your photo' }}" />
+            </div>
+            {% else %}
+            <p class="empty-state small">No photos saved yet — <button type="button" class="link-btn" data-tab="closet">add one in My Closet</button>.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        {% for cat, cat_label, cat_plural in [("top", "Top", "tops"), ("bottom", "Bottom", "bottoms"), ("shoes", "Shoes", "shoes")] %}
+        <div class="library">
+          <h2 class="library-title">{{ cat_label }} <span class="optional-tag">optional</span></h2>
+          <div class="library-grid select-grid" id="select-{{ cat }}" data-hidden-field="{{ cat }}_id" data-toggle="true">
+            {% for g in garments if g.category == cat %}
+            <div class="library-item" data-id="{{ g.id }}">
+              <img src="{{ g.image_url }}" alt="{{ g.label or cat_label }}" />
+            </div>
+            {% else %}
+            <p class="empty-state small">No {{ cat_plural }} saved yet — <button type="button" class="link-btn" data-tab="closet">add some in My Closet</button>.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" id="submit-btn" disabled>
+          <span class="btn-label">Try it on</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+
+        <p id="status" role="status"></p>
+      </form>
+
+      <section id="result" class="card hidden">
+        <h2>Result</h2>
+        <img id="result-img" alt="Try-on result" />
+      </section>
+
+      <section id="history">
+        <h2>Past try-ons</h2>
+        <div class="history-grid">
+          {% for entry in history %}
+          <div class="history-item">
+            <img src="{{ entry.image_url }}" alt="{{ entry.garment_desc }}" loading="lazy" />
+            <p>{{ entry.garment_desc }}</p>
+          </div>
+          {% else %}
+          <p class="empty-state">No try-ons yet — your results will show up here.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </section>
+
+    <section id="tab-closet" class="tab-panel hidden">
+      <div class="library card">
+        <h2 class="library-title">Your photos</h2>
+        <div class="library-grid" id="manage-people" data-endpoint="/people" data-partner="select-people">
           <label class="library-add">
             <input type="file" accept="image/*" class="library-add-input" />
             <span class="add-icon">+</span>
             <span class="add-label">Add</span>
           </label>
           {% for p in people %}
-          <div class="library-item" data-id="{{ p.id }}" data-label="{{ p.label }}">
+          <div class="library-item" data-id="{{ p.id }}">
             <img src="{{ p.image_url }}" alt="{{ p.label or 'your photo' }}" />
             <button type="button" class="delete-btn" title="Delete this photo">&times;</button>
           </div>
@@ -48,53 +113,24 @@
         </div>
       </div>
 
-      <div class="library">
-        <h2 class="library-title">Garment</h2>
-        <div class="library-grid" id="garments-grid" data-endpoint="/garments" data-hidden-field="garment_id">
+      {% for cat, cat_label in [("top", "Tops"), ("bottom", "Bottoms"), ("shoes", "Shoes")] %}
+      <div class="library card">
+        <h2 class="library-title">{{ cat_label }}</h2>
+        <div class="library-grid" id="manage-{{ cat }}" data-endpoint="/garments" data-category="{{ cat }}" data-partner="select-{{ cat }}">
           <label class="library-add">
             <input type="file" accept="image/*" class="library-add-input" />
             <span class="add-icon">+</span>
             <span class="add-label">Add</span>
           </label>
-          {% for g in garments %}
-          <div class="library-item" data-id="{{ g.id }}" data-label="{{ g.label }}">
-            <img src="{{ g.image_url }}" alt="{{ g.label or 'garment' }}" />
-            <button type="button" class="delete-btn" title="Delete this garment">&times;</button>
+          {% for g in garments if g.category == cat %}
+          <div class="library-item" data-id="{{ g.id }}">
+            <img src="{{ g.image_url }}" alt="{{ g.label or cat_label }}" />
+            <button type="button" class="delete-btn" title="Delete this item">&times;</button>
           </div>
           {% endfor %}
         </div>
       </div>
-
-      <div class="field">
-        <label for="garment_desc">Garment description</label>
-        <input type="text" id="garment_desc" name="garment_desc" placeholder="e.g. a red cotton hoodie" />
-      </div>
-
-      <button type="submit" id="submit-btn" disabled>
-        <span class="btn-label">Try it on</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
-
-      <p id="status" role="status"></p>
-    </form>
-
-    <section id="result" class="card hidden">
-      <h2>Result</h2>
-      <img id="result-img" alt="Try-on result" />
-    </section>
-
-    <section id="history">
-      <h2>Past try-ons</h2>
-      <div class="history-grid">
-        {% for entry in history %}
-        <div class="history-item">
-          <img src="{{ entry.image_url }}" alt="{{ entry.garment_desc }}" loading="lazy" />
-          <p>{{ entry.garment_desc }}</p>
-        </div>
-        {% else %}
-        <p class="empty-state">No try-ons yet — your results will show up here.</p>
-        {% endfor %}
-      </div>
+      {% endfor %}
     </section>
   </main>
 

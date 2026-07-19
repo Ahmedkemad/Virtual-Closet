@@ -14,6 +14,8 @@ load_dotenv()
 mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+CATEGORIES = ("top", "bottom", "shoes")
+DEFAULT_DESCRIPTIONS = {"top": "a top", "bottom": "pants", "shoes": "shoes"}
 REPLICATE_MODEL = os.environ.get(
     "REPLICATE_MODEL",
     "cuuupid/idm-vton:139cb1163486954531b765d4ac3bb6d3e02fe121151665adfc3b47e9ba3ebf67",
@@ -28,6 +30,11 @@ def allowed_file(filename: str) -> bool:
 
 def with_image_url(row: dict, folder: str) -> dict:
     return {**row, "image_url": storage.public_url(f"{folder}/{row['filename']}")}
+
+
+def extract_url(output) -> str:
+    # Some model versions return a single URL, others a list of URLs/FileOutput objects.
+    return str(output[0] if isinstance(output, list) else output)
 
 
 @app.route("/")
@@ -51,7 +58,7 @@ def index():
     return render_template("index.html", people=people, garments=garments, history=history, storage_message=None)
 
 
-def add_library_entry(table: str, folder: str):
+def add_library_entry(table: str, folder: str, extra_fields: dict | None = None):
     if not storage.is_configured():
         return None, (jsonify({"error": "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY."}), 500)
 
@@ -66,7 +73,7 @@ def add_library_entry(table: str, folder: str):
     try:
         storage.storage_upload(f"{folder}/{filename}", file.read(), content_type)
         label = request.form.get("label", "").strip()
-        row = storage.db_insert(table, {"filename": filename, "label": label})
+        row = storage.db_insert(table, {"filename": filename, "label": label, **(extra_fields or {})})
     except requests.RequestException as exc:
         return None, (jsonify({"error": f"Could not save to Supabase: {exc}"}), 502)
 
@@ -94,7 +101,10 @@ def delete_person(item_id):
 
 @app.route("/garments", methods=["POST"])
 def add_garment():
-    entry, error = add_library_entry("garments", "garments")
+    category = request.form.get("category", "")
+    if category not in CATEGORIES:
+        return jsonify({"error": "Category must be one of: top, bottom, shoes."}), 400
+    entry, error = add_library_entry("garments", "garments", {"category": category})
     if error:
         return error
     return jsonify(entry)
@@ -119,8 +129,11 @@ def try_on():
         return jsonify({"error": "Supabase is not configured. Set SUPABASE_URL and SUPABASE_SERVICE_KEY."}), 500
 
     person_id = request.form.get("person_id")
-    garment_id = request.form.get("garment_id")
-    garment_desc = request.form.get("garment_desc", "a garment")
+    selected_ids = {cat: request.form.get(f"{cat}_id") for cat in CATEGORIES}
+    selected_ids = {cat: gid for cat, gid in selected_ids.items() if gid}
+
+    if not selected_ids:
+        return jsonify({"error": "Please select at least one item to try on."}), 400
 
     try:
         people = {p["id"]: p for p in storage.db_select("people")}
@@ -130,30 +143,43 @@ def try_on():
 
     if person_id not in people:
         return jsonify({"error": "Please select or upload a photo of yourself."}), 400
-    if garment_id not in garments:
-        return jsonify({"error": "Please select or upload a garment photo."}), 400
+    for cat, gid in selected_ids.items():
+        if gid not in garments:
+            return jsonify({"error": f"Please select a valid {cat}."}), 400
 
-    person_url = storage.public_url(f"people/{people[person_id]['filename']}")
-    garment_url = storage.public_url(f"garments/{garments[garment_id]['filename']}")
+    current_image_url = storage.public_url(f"people/{people[person_id]['filename']}")
+    used_descriptions = []
+
+    # Chain each garment through the model in turn, using the previous result
+    # as the next step's base photo — this single-garment model doesn't support
+    # multiple garments in one call, so an outfit is composited one piece at a time.
+    for cat in CATEGORIES:
+        gid = selected_ids.get(cat)
+        if not gid:
+            continue
+
+        garment = garments[gid]
+        garment_url = storage.public_url(f"garments/{garment['filename']}")
+        description = garment.get("label") or DEFAULT_DESCRIPTIONS[cat]
+        used_descriptions.append(description)
+
+        try:
+            output = replicate.run(
+                REPLICATE_MODEL,
+                input={
+                    "human_img": current_image_url,
+                    "garm_img": garment_url,
+                    "garment_des": description,
+                },
+            )
+            current_image_url = extract_url(output)
+        except Exception as exc:
+            return jsonify({"error": f"Applying the {cat} failed: {exc}"}), 502
+
+    garment_desc = " + ".join(used_descriptions)
 
     try:
-        output = replicate.run(
-            REPLICATE_MODEL,
-            input={
-                "human_img": person_url,
-                "garm_img": garment_url,
-                "garment_des": garment_desc,
-            },
-        )
-    except Exception as exc:
-        return jsonify({"error": f"Try-on model call failed: {exc}"}), 502
-
-    # Some model versions return a single URL, others a list of URLs/FileOutput objects.
-    result_url = output[0] if isinstance(output, list) else output
-    result_url = str(result_url)
-
-    try:
-        resp = requests.get(result_url, timeout=60)
+        resp = requests.get(current_image_url, timeout=60)
         resp.raise_for_status()
 
         result_filename = f"{uuid.uuid4().hex}.png"
