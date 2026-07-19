@@ -23,6 +23,10 @@
   </header>
 
   <main>
+    {% if storage_message %}
+    <p class="empty-state banner">{{ storage_message }}</p>
+    {% endif %}
+
     <form id="try-on-form" class="card">
       <input type="hidden" id="person_id" name="person_id" value="" />
       <input type="hidden" id="garment_id" name="garment_id" value="" />
@@ -37,7 +41,7 @@
           </label>
           {% for p in people %}
           <div class="library-item" data-id="{{ p.id }}" data-label="{{ p.label }}">
-            <img src="/static/people/{{ p.filename }}" alt="{{ p.label or 'your photo' }}" />
+            <img src="{{ p.image_url }}" alt="{{ p.label or 'your photo' }}" />
             <button type="button" class="delete-btn" title="Delete this photo">&times;</button>
           </div>
           {% endfor %}
@@ -54,7 +58,7 @@
           </label>
           {% for g in garments %}
           <div class="library-item" data-id="{{ g.id }}" data-label="{{ g.label }}">
-            <img src="/static/garments/{{ g.filename }}" alt="{{ g.label or 'garment' }}" />
+            <img src="{{ g.image_url }}" alt="{{ g.label or 'garment' }}" />
             <button type="button" class="delete-btn" title="Delete this garment">&times;</button>
           </div>
           {% endfor %}
@@ -84,7 +88,7 @@
       <div class="history-grid">
         {% for entry in history %}
         <div class="history-item">
-          <img src="/static/{{ entry.result_image }}" alt="{{ entry.garment_desc }}" loading="lazy" />
+          <img src="{{ entry.image_url }}" alt="{{ entry.garment_desc }}" loading="lazy" />
           <p>{{ entry.garment_desc }}</p>
         </div>
         {% else %}

@@ -34,7 +34,7 @@ function setupLibrary(gridId) {
     item.dataset.label = entry.label || "";
 
     const img = document.createElement("img");
-    img.src = `/static/${entry.image_url}`;
+    img.src = entry.image_url;
     img.alt = entry.label || "";
     item.appendChild(img);
 
@@ -92,7 +92,7 @@ function setupLibrary(gridId) {
         statusEl.textContent = entry.error || "Could not save image.";
         return;
       }
-      const item = buildItem({ ...entry, image_url: `${gridId === "people-grid" ? "people" : "garments"}/${entry.filename}` });
+      const item = buildItem(entry);
       grid.appendChild(item);
       selectItem(item);
       statusEl.textContent = "";
@@ -137,7 +137,7 @@ form.addEventListener("submit", async (event) => {
     }
 
     statusEl.textContent = "Done!";
-    resultImg.src = `/static/${data.result_image}`;
+    resultImg.src = data.image_url;
     resultSection.classList.remove("hidden");
     resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (err) {

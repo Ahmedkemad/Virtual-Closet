@@ -352,3 +352,10 @@ button#submit-btn.loading .btn-spinner {
   color: var(--ink-muted);
   font-size: 0.9rem;
 }
+
+.banner {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  background: var(--paper-card);
+}

@@ -3,9 +3,3 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-static/people/
-static/garments/
-static/outputs/
-people.json
-garments.json
-closet_history.json
