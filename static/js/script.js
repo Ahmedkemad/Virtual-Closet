@@ -19,7 +19,7 @@ document.querySelectorAll("[data-tab]").forEach((el) => {
 
 function updateSubmitState() {
   const personId = document.getElementById("person_id").value;
-  const anyGarment = ["top_id", "bottom_id", "shoes_id"].some(
+  const anyGarment = ["top_id", "bottom_id"].some(
     (id) => document.getElementById(id).value
   );
   submitBtn.disabled = !personId || !anyGarment;
@@ -177,8 +177,8 @@ function setupManageGrid(gridId) {
   });
 }
 
-["select-people", "select-top", "select-bottom", "select-shoes"].forEach(setupSelectGrid);
-["manage-people", "manage-top", "manage-bottom", "manage-shoes"].forEach(setupManageGrid);
+["select-people", "select-top", "select-bottom"].forEach(setupSelectGrid);
+["manage-people", "manage-top", "manage-bottom"].forEach(setupManageGrid);
 updateSubmitState();
 
 form.addEventListener("submit", async (event) => {

@@ -37,7 +37,6 @@
         <input type="hidden" id="person_id" name="person_id" value="" />
         <input type="hidden" id="top_id" name="top_id" value="" />
         <input type="hidden" id="bottom_id" name="bottom_id" value="" />
-        <input type="hidden" id="shoes_id" name="shoes_id" value="" />
 
         <div class="library">
           <h2 class="library-title">Your photo</h2>
@@ -52,7 +51,7 @@
           </div>
         </div>
 
-        {% for cat, cat_label, cat_plural in [("top", "Top", "tops"), ("bottom", "Bottom", "bottoms"), ("shoes", "Shoes", "shoes")] %}
+        {% for cat, cat_label, cat_plural in [("top", "Top", "tops"), ("bottom", "Bottom", "bottoms")] %}
         <div class="library">
           <h2 class="library-title">{{ cat_label }} <span class="optional-tag">optional</span></h2>
           <div class="library-grid select-grid" id="select-{{ cat }}" data-hidden-field="{{ cat }}_id" data-toggle="true">
@@ -113,7 +112,7 @@
         </div>
       </div>
 
-      {% for cat, cat_label in [("top", "Tops"), ("bottom", "Bottoms"), ("shoes", "Shoes")] %}
+      {% for cat, cat_label in [("top", "Tops"), ("bottom", "Bottoms")] %}
       <div class="library card">
         <h2 class="library-title">{{ cat_label }}</h2>
         <div class="library-grid" id="manage-{{ cat }}" data-endpoint="/garments" data-category="{{ cat }}" data-partner="select-{{ cat }}">

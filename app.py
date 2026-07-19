@@ -14,8 +14,11 @@ load_dotenv()
 mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-CATEGORIES = ("top", "bottom", "shoes")
-DEFAULT_DESCRIPTIONS = {"top": "a top", "bottom": "pants", "shoes": "shoes"}
+CATEGORIES = ("top", "bottom")
+DEFAULT_DESCRIPTIONS = {"top": "a top", "bottom": "pants"}
+# IDM-VTON needs to be told which body region a garment belongs on, or it
+# defaults to treating everything as upper-body clothing.
+MODEL_CATEGORIES = {"top": "upper_body", "bottom": "lower_body"}
 REPLICATE_MODEL = os.environ.get(
     "REPLICATE_MODEL",
     "cuuupid/idm-vton:139cb1163486954531b765d4ac3bb6d3e02fe121151665adfc3b47e9ba3ebf67",
@@ -103,7 +106,7 @@ def delete_person(item_id):
 def add_garment():
     category = request.form.get("category", "")
     if category not in CATEGORIES:
-        return jsonify({"error": "Category must be one of: top, bottom, shoes."}), 400
+        return jsonify({"error": "Category must be one of: top, bottom."}), 400
     entry, error = add_library_entry("garments", "garments", {"category": category})
     if error:
         return error
@@ -170,6 +173,7 @@ def try_on():
                     "human_img": current_image_url,
                     "garm_img": garment_url,
                     "garment_des": description,
+                    "category": MODEL_CATEGORIES[cat],
                 },
             )
             current_image_url = extract_url(output)

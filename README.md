@@ -1,7 +1,7 @@
 # Virtual Closet
 
 A small personal virtual try-on app. Save a photo of yourself and photos of
-tops, bottoms, and shoes once, then mix and match a full outfit to see what
+tops and bottoms once, then mix and match a full outfit to see what
 it looks like on you without re-uploading each time — your library is saved
 permanently until you delete something yourself. The **Try It On** tab is
 for picking a photo and an outfit; the **My Closet** tab is for adding and
@@ -76,7 +76,7 @@ This pays for each try-on, a few cents each.
   the "anon" key — the service_role one). You'll paste both in step 4.
 
 > **Already have a Supabase project from before?** Garments now have a
-> category (top/bottom/shoes). Open **SQL Editor** → **New query**, paste
+> category (top/bottom). Open **SQL Editor** → **New query**, paste
 > and run:
 > ```sql
 > alter table garments add column category text not null default 'top';
@@ -111,12 +111,12 @@ This pays for each try-on, a few cents each.
 Open that URL on your phone or laptop.
 
 - In **My Closet**, click **+ Add** to save a photo of yourself, and **+
-  Add** under Tops/Bottoms/Shoes for each clothing item — they're saved
+  Add** under Tops/Bottoms for each clothing item — they're saved
   permanently so you just tap to pick them next time. Hover (or tap, on
   mobile) a saved photo to see a **×** button to delete it for good.
-- In **Try It On**, pick your photo and any combination of a top, bottom,
-  and/or shoes (all optional except you need at least one), then click
-  **Try it on** to see the full outfit composited onto your photo.
+- In **Try It On**, pick your photo and a top and/or bottom (at least one
+  required), then click **Try it on** to see the outfit composited onto
+  your photo.
 
 Note on the Render free plan: the service "sleeps" after 15 minutes of no
 use, so the first request after a while takes ~30-60 seconds to wake up —
@@ -156,12 +156,16 @@ The app works as an installable home-screen app (no App Store needed):
 
 ## Notes
 
-- The try-on model (idm-vton) only handles one garment at a time. To
-  composite a full outfit, the app calls it once per selected item, feeding
-  each result back in as the base photo for the next item (top, then
-  bottom, then shoes). This generally works well for 2-3 items, but quality
-  can degrade slightly with each extra pass (minor drift in pose/background)
-  — if a multi-item result looks off, try fewer items at once.
+- The try-on model (idm-vton) only handles one garment at a time, and needs
+  to know whether it's upper-body or lower-body clothing (the app passes
+  this automatically based on whether you added it under Tops or Bottoms).
+  To composite a full outfit, the app calls the model once per selected
+  item, feeding each result back in as the base photo for the next item
+  (top, then bottom). This works well for two items, but quality can
+  degrade slightly on the second pass (minor drift in pose/background).
+- Shoes aren't supported — idm-vton only has categories for upper-body,
+  lower-body, and dresses, with no footwear option, so there's no reliable
+  way to try on shoes with this model.
 - Each try-on with N items costs N times the usual Replicate charge, since
   it's N sequential model calls.
 - Photos and try-on history live in your Supabase project (Storage bucket
